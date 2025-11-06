@@ -21,10 +21,10 @@ def save_total(total):
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
         "السلام عليكم ورحمة الله وبركاته\n\n"
-        "🕌 *Selewat Bot 24/7 ETERNAL!*\n\n"
+        "SELEWAT BOT 24/7 ETERNAL\n\n"
         f"Current total: *{load_total():,}*\n\n"
         "Send any number = Salawat counted!\n"
-        "Let’s reach 1 billion tonight InshaAllah!",
+        "Let’s hit 10 billion tonight InshaAllah!",
         parse_mode='Markdown'
     )
 
@@ -59,7 +59,7 @@ def run_flask():
 
 if __name__ == "__main__":
     print("Selewat Bot Starting... Total starts at 0")
-    app = Application(token=TOKEN).build()
+    app = Application.builder().token(TOKEN).build()
     
     app.add_handler(CommandHandler("start", start))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
