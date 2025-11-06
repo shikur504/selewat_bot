@@ -1,6 +1,10 @@
 import os
 from telegram import Update
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, filters, ContextTypes
+from datetime import datetime
+import asyncio
+from flask import Flask
+import threading
 
 TOKEN = "8229668167:AAFmHYkIfwzTNMa_SzPETJrCJSfE42CPmNA"
 FILE = "total.txt"
@@ -23,7 +27,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     name = user.full_name
     await update.message.reply_text(
         f"السلام عليكم ورحمة الله وبركاته {name}!\n\n"
-        "🕌 *Selewat Bot is now ACTIVE!*\n\n"
+        "Selewat Bot is now ACTIVE!\n\n"
         "Send any number in the group to count Salawat\n"
         f"Current total: *{load_total():,}*\n\n"
         "Let’s reach 1 billion together InshaAllah!",
@@ -33,80 +37,46 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not update.message or not update.message.text:
         return
-
     text = update.message.text.strip()
-    
     try:
         num = int(text)
         if num <= 0:
             return
-
         user = update.message.from_user
         full_name = user.full_name
         username = user.username
         display_name = f"@{username}" if username else full_name
-
         current_total = load_total()
         new_total = current_total + num
         save_total(new_total)
-
-        reply = (
-            f"{display_name} added {num:,} to Group Salawat\n"
-            f"Total count: {new_total:,}"
-        )
-        
+        reply = f"{display_name} added {num:,} to Group Salawat\nTotal count: {new_total:,}"
         await update.message.reply_text(reply)
-
     except ValueError:
         pass
 
+# PRO COMMANDS
+async def total(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text(f"Total Salawat: *{load_total():,}*", parse_mode='Markdown')
+
+# Web dashboard
+flask_app = Flask(__name__)
+@flask_app.route('/total')
+def web_total():
+    return f"<h1><center>Selewat Total</center></h1><h2><center>{load_total():,}</center></h2><meta http-equiv='refresh' content='5'>"
+
+def run_flask():
+    flask_app.run(host='0.0.0.0', port=8080)
+
 if __name__ == "__main__":
     print("Selewat Bot Starting... Total starts at 0")
-    
-    app = ApplicationBuilder().token(TOKEN).concurrent_updates=True).build()
+    app = ApplicationBuilder().token(TOKEN).concurrent_updates(True).build()
     
     app.add_handler(CommandHandler("start", start))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
+    app.add_handler(CommandHandler("total", total))
     
-    # THIS LINE FIXES THE ERROR 100%
-    app.run_polling(drop_pending_updates=True, allowed_updates=Update.ALL_TYPES)
-
-# ===== PROFESSIONAL COMMANDS (add these) =====
-from datetime import datetime
-import asyncio
-
-# Daily 8 PM EAT auto-post
-async def daily_report():
-    while True:
-        now = datetime.now()
-        if now.hour == 20 and now.minute == 0:
-            total = load_total()
-            await context.bot.send_message(
-                chat_id=-1002134567890,  # REPLACE WITH YOUR GROUP ID
-                text=f"السلام عليكم ورحمة الله\n\n"
-                     f"الحمد لله! اليوم أرسلنا *{total:,}* صلاة على النبي ﷺ\n\n"
-                     f"الإجمالي: *{total:,}*\n"
-                     f"نواصل حتى 10 مليار إن شاء الله!",
-                parse_mode='Markdown'
-            )
-        await asyncio.sleep(60)
-
-# Web dashboard
-from flask import Flask
-app_flask = Flask(__name__)
-
-@app_flask.route('/total')
-def web_total():
-    return f"<h1><center>🕌 Selewat Total 🕌</center></h1><h2><center>{load_total():,}</center></h2>"
-
-# Start web server in background
-import threading
-threading.Thread(target=app_flask.run, kwargs={'host':'0.0.0.0','port':8080}, daemon=True).start()
-
-# Add commands
-app.add_handler(CommandHandler("total", total))
-app.add_handler(CommandHandler("stats", stats))
-app.add_handler(CommandHandler("top", top))
-
-# Start daily report
-context.job_queue.run_repeating(daily_report, interval=60)
+    # Start web server
+    threading.Thread(target=run_flask, daemon=True).start()
+    
+    print("Bot + Web Dashboard LIVE 24/7")
+    app.run_polling(drop_pending_updates=True)
