@@ -11,9 +11,6 @@ TOKEN = "8229668167:AAFmHYkIfwzTNMa_SzPETJrCJSfE42CPmNA"
 FILE = "/data/total.txt"  # RENDER PERSISTENT DISK
 WEB_URL = "https://selewat-bot.onrender.com/total"  # YOUR LIVE COUNTER URL
 
-# ENSURE /data DIRECTORY EXISTS
-os.makedirs("/data", exist_ok=True)
-
 # ==================== FILE HANDLING ====================
 def load_total():
     try:
