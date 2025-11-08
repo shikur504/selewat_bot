@@ -68,4 +68,4 @@ if __name__ == "__main__":
     threading.Thread(target=run_flask, daemon=True).start()
     
     print("Bot + Web Dashboard LIVE 24/7 – GREEN IN 60 SECONDS")
-    app.run_polling(drop_pending_updates=True)
+    app.run_polling()
