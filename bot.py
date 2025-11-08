@@ -9,7 +9,7 @@ from flask import Flask
 # ==================== CONFIG ====================
 TOKEN = "8229668167:AAFmHYkIfwzTNMa_SzPETJrCJSfE42CPmNA"
 FILE = "/data/total.txt"  # RENDER PERSISTENT DISK
-WEB_URL = "https://selewat-bot.onrender.com/total"  # YOUR LIVE COUNTER URL
+WEB_URL = "https://selewat-bot.onrender.com/total"
 
 # ==================== FILE HANDLING ====================
 def load_total():
@@ -20,8 +20,11 @@ def load_total():
         return 0
 
 def save_total(total):
-    with open(FILE, "w") as f:
-        f.write(str(total))
+    try:
+        with open(FILE, "w") as f:
+            f.write(str(total))
+    except Exception as e:
+        print(f"Save failed: {e}")
 
 # ==================== TELEGRAM BOT ====================
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -37,16 +40,25 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not update.message or not update.message.text:
         return
+    
     text = update.message.text.strip()
+    
+    # Ignore commands like /start
+    if text.startswith('/'):
+        return
+    
     try:
         num = int(text)
         if num <= 0:
             return
+        
         user = update.message.from_user
         name = f"@{user.username}" if user.username else user.full_name
+        
         old = load_total()
         new = old + num
         save_total(new)
+        
         await update.message.reply_text(
             f"{name} added *{num:,}* Salawat\n"
             f"Total: *{new:,}*",
@@ -69,9 +81,9 @@ def total():
     <h2 style="text-align:center; font-family:Arial; color:#1E90FF;">
         {load_total():,}
     </h2>
-    <p style="text-align:center;">
-        <a href="https://t.me/+YOUR_GROUP_LINK" style="color:#25D366;">Join Group</a> |
-        <a href="https://t.me/selewat_bot" style="color:#0088cc;">@selewat_bot</a>
+    <p style="text-align:center; font-size:18px;">
+        <a href="https://t.me/+YOUR_GROUP_LINK" style="color:#25D366; text-decoration:none;">Join Group</a> |
+        <a href="https://t.me/sirulwujudselewatbot" style="color:#0088cc; text-decoration:none;">@sirulwujudselewatbot</a>
     </p>
     '''
 
@@ -85,7 +97,7 @@ async def keep_alive():
         await asyncio.sleep(300)  # Every 5 minutes
         try:
             urllib.request.urlopen(WEB_URL, timeout=10)
-            print(f"Keep-alive ping sent to {WEB_URL}")
+            print("Keep-alive ping sent")
         except Exception as e:
             print(f"Ping failed: {e}")
 
@@ -98,20 +110,20 @@ def start_keep_alive():
 if __name__ == "__main__":
     print("Selewat Bot Starting... Total starts at 0")
     
-    # Build Telegram App
+    # Build Application
     app = Application.builder().token(TOKEN).build()
     
     # Add Handlers
     app.add_handler(CommandHandler("start", start))
-    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
+    app.add_handler(MessageHandler(filters.TEXT, handle_message))  # WORKS IN GROUP + PRIVATE
     
-    # Start Flask Web Dashboard
+    # Start Flask Dashboard
     threading.Thread(target=run_flask, daemon=True).start()
     
-    # Start Keep-Alive Ping
+    # Start Keep-Alive
     threading.Thread(target=start_keep_alive, daemon=True).start()
     
-    print("Bot + Web Dashboard + Keep-Alive = LIVE 24/7 – GREEN ETERNAL")
+    print("LIVE 24/7 – Counting every Salawat in Group & Private!")
     
     # Run Bot
     app.run_polling(drop_pending_updates=True)
