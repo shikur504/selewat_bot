@@ -4,7 +4,7 @@ import asyncio
 import urllib.request
 import logging
 import re
-from telegram import Update
+from telegram import Update, ChatMember
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes
 from flask import Flask
 
@@ -46,6 +46,32 @@ def save_total(total):
 
 # ==================== BOT HANDLERS ====================
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    chat = update.effective_chat
+
+    # BLOCK PRIVATE CHAT
+    if chat.type == "private":
+        await update.message.reply_text(
+            "السلام عليكم\n\n"
+            "This bot only works in the group!\n\n"
+            "Join the official group:\n"
+            "https://t.me/sirrul_wejud",
+            disable_web_page_preview=True
+        )
+        return
+
+    # CHECK IF BOT IS ADMIN
+    try:
+        bot_member = await context.bot.get_chat_member(chat.id, context.bot.id)
+        if bot_member.status not in ["administrator", "creator"]:
+            await update.message.reply_text(
+                "Please make me an admin first to count Salawat!\n"
+                "Go to Group Settings → Administrators → Add @sirulwujudselewatbot"
+            )
+            return
+    except Exception as e:
+        logger.error(f"ADMIN CHECK FAILED: {e}")
+        return
+
     total = load_total()
     await update.message.reply_text(
         "السلام عليكم ورحمة الله\n\n"
@@ -57,18 +83,33 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
 
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    chat = update.effective_chat
+
+    # BLOCK PRIVATE CHAT
+    if chat.type == "private":
+        return
+
+    # CHECK IF BOT IS ADMIN
+    try:
+        bot_member = await context.bot.get_chat_member(chat.id, context.bot.id)
+        if bot_member.status not in ["administrator", "creator"]:
+            return  # Ignore if not admin
+    except Exception as e:
+        logger.error(f"ADMIN CHECK FAILED: {e}")
+        return
+
     if not update.message or not update.message.text:
         return
-    
+
     text = update.message.text.strip()
     if text.startswith('/'):
         return
 
-    # EXTRACT FIRST NUMBER FROM ANY TEXT
+    # EXTRACT FIRST NUMBER
     match = re.search(r'\d+', text)
     if not match:
         return
-    
+
     num = int(match.group())
     if num <= 0:
         return
@@ -79,7 +120,6 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     new = old + num
     save_total(new)
 
-    # FIXED: PROPER MULTI-LINE F-STRING
     await update.message.reply_text(
         f"<b>{full_name}</b> added <b>{num:,}</b> to <b>Group Salawat</b>\n"
         f"Total count: <b>{new:,}</b>",
@@ -138,5 +178,5 @@ if __name__ == "__main__":
     threading.Thread(target=run_flask, daemon=True).start()
     threading.Thread(target=lambda: asyncio.run(keep_alive()), daemon=True).start()
     
-    logger.info("LIVE 24/7 – NO SYNTAX ERROR – ARABIC COUNTING – MOTIVATIONAL DASHBOARD!")
+    logger.info("LIVE 24/7 – ONLY COUNTS WHEN BOT IS ADMIN – PRIVATE BLOCKED!")
     app.run_polling(drop_pending_updates=True)
