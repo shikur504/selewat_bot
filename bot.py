@@ -9,7 +9,7 @@ from flask import Flask
 
 # ==================== CONFIG ====================
 TOKEN = "8229668167:AAFmHYkIfwzTNMa_SzPETJrCJSfE42CPmNA"
-DATA_DIR = "./data"           # ← INSIDE PROJECT (ALLOWED)
+DATA_DIR = "./data"
 FILE = os.path.join(DATA_DIR, "total.txt")
 WEB_URL = "https://selewat-bot.onrender.com/total"
 
@@ -17,42 +17,33 @@ WEB_URL = "https://selewat-bot.onrender.com/total"
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# ==================== GLOBAL FILE HANDLING ====================
+# ==================== FILE HANDLING ====================
 def ensure_file():
-    os.makedirs(DATA_DIR, exist_ok=True)  # ← SAFE: creates ./data
+    os.makedirs(DATA_DIR, exist_ok=True)
     if not os.path.exists(FILE):
         with open(FILE, "w") as f:
             f.write("0")
         logger.info(f"CREATED: {FILE} with 0")
-    else:
-        logger.info(f"FILE EXISTS: {FILE}")
 
 def load_total():
     try:
         with open(FILE, "r") as f:
-            total = int(f.read().strip())
-            logger.info(f"LOADED: {total}")
-            return total
+            return int(f.read().strip())
     except:
-        logger.warning("CORRUPTED → STARTING FROM 0")
         save_total(0)
         return 0
 
 def save_total(total):
-    try:
-        with open(FILE, "w") as f:
-            f.write(str(total))
-        logger.info(f"SAVED: {total}")
-    except Exception as e:
-        logger.error(f"SAVE FAILED: {e}")
+    with open(FILE, "w") as f:
+        f.write(str(total))
 
-# ==================== TELEGRAM BOT ====================
+# ==================== BOT HANDLERS ====================
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
         "السلام عليكم ورحمة الله\n\n"
         "SIRULWUJUD SELEWAT BOT\n\n"
         f"**GLOBAL TOTAL**: *{load_total():,}*\n\n"
-        "Send any number = counted!\n"
+        "Send any number = counted in Group Salawat!\n"
         "Let’s hit 1 billion InshaAllah!",
         parse_mode='Markdown'
     )
@@ -67,15 +58,20 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         num = int(text)
         if num <= 0:
             return
-        name = f"@{update.message.from_user.username}" if update.message.from_user.username else update.message.from_user.full_name
+        
+        user = update.message.from_user
+        full_name = user.full_name
         old = load_total()
         new = old + num
         save_total(new)
+
+        # EXACTLY LIKE YOUR IMAGE
         await update.message.reply_text(
-            f"{name} added {num:,} Salawat\n"
-            f"**GLOBAL TOTAL**: {new:,}"
+            f"<b>{full_name}</b> added <b>{num:,}</b> to <b>Group Salawat</b>\n"
+            f"Total count: <b>{new:,}</b>",
+            parse_mode='HTML'
         )
-        logger.info(f"ADDED {num} → {new}")
+        logger.info(f"{full_name} +{num} → {new}")
     except ValueError:
         pass
 
@@ -88,11 +84,11 @@ def total():
     count = load_total()
     return f'''
     <meta http-equiv="refresh" content="10">
-    <h1 style="text-align:center; color:#2E8B57;">GLOBAL SELEWAT TOTAL</h1>
+    <h1 style="text-align:center; color:#2E8B57; font-family:Arial;">GROUP SALAWAT TOTAL</h1>
     <h2 style="text-align:center; color:#1E90FF; font-size:48px;">{count:,}</h2>
-    <p style="text-align:center;">
-        <a href="https://t.me/+YOUR_GROUP_LINK">Join Group</a> |
-        <a href="https://t.me/sirulwujudselewatbot">@sirulwujudselewatbot</a>
+    <p style="text-align:center; font-size:20px;">
+        <a href="https://t.me/+YOUR_GROUP_LINK" style="color:#25D366; text-decoration:none;">Join Group</a> |
+        <a href="https://t.me/sirulwujudselewatbot" style="color:#0088cc; text-decoration:none;">@sirulwujudselewatbot</a>
     </p>
     '''
 
@@ -113,7 +109,7 @@ async def keep_alive():
 # ==================== MAIN ====================
 if __name__ == "__main__":
     logger.info("SELEWAT BOT STARTING...")
-    ensure_file()  # ← Creates ./data/total.txt
+    ensure_file()
     
     app = Application.builder().token(TOKEN).build()
     app.add_handler(CommandHandler("start", start))
@@ -122,5 +118,5 @@ if __name__ == "__main__":
     threading.Thread(target=run_flask, daemon=True).start()
     threading.Thread(target=lambda: asyncio.run(keep_alive()), daemon=True).start()
     
-    logger.info("LIVE 24/7 – GLOBAL TOTAL – NO PERMISSION ERRORS!")
+    logger.info("LIVE – SHOWING FULL NAMES + 'to Group Salawat'!")
     app.run_polling(drop_pending_updates=True)
