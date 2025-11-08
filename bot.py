@@ -18,6 +18,9 @@ logger = logging.getLogger(__name__)
 
 # ==================== GLOBAL FILE HANDLING ====================
 def ensure_file():
+    # CREATE /data DIRECTORY IF NOT EXISTS
+    os.makedirs(os.path.dirname(FILE), exist_ok=True)
+    
     if not os.path.exists(FILE):
         with open(FILE, "w") as f:
             f.write("0")
@@ -116,7 +119,7 @@ async def keep_alive():
 # ==================== MAIN ====================
 if __name__ == "__main__":
     logger.info("GLOBAL SELEWAT BOT STARTING...")
-    ensure_file()  # ← ONLY CREATES IF MISSING
+    ensure_file()  # ← CREATES /data + total.txt IF MISSING
     
     app = Application.builder().token(TOKEN).build()
     app.add_handler(CommandHandler("start", start))
