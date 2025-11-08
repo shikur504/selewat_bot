@@ -44,7 +44,7 @@ def save_total(total):
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     logger.info(f"/start from {update.message.from_user.full_name}")
     await update.message.reply_text(
-        "السلام عليكم\n\n"
+        "السلام عليكم ورحمة الله\n\n"
         "SIRULWUJUD SELEWAT BOT\n\n"
         f"Current total: *{load_total():,}*\n\n"
         "Send any number = counted!\n"
@@ -66,10 +66,10 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         old = load_total()
         new = old + num
         save_total(new)
+        # FIX: Use plain text to avoid Markdown parse error
         await update.message.reply_text(
-            f"{name} added *{num:,}* Salawat\n"
-            f"Total: *{new:,}*",
-            parse_mode='Markdown'
+            f"{name} added {num:,} Salawat\n"
+            f"Total: {new:,}"
         )
         logger.info(f"COUNTED: +{num} → {new}")
     except ValueError:
@@ -109,7 +109,7 @@ async def keep_alive():
 # ==================== MAIN ====================
 if __name__ == "__main__":
     logger.info("SELEWAT BOT STARTING CLEAN...")
-    ensure_file()
+    ensure_file()  # ← Creates file BEFORE any load/save
     
     app = Application.builder().token(TOKEN).build()
     app.add_handler(CommandHandler("start", start))
@@ -118,5 +118,5 @@ if __name__ == "__main__":
     threading.Thread(target=run_flask, daemon=True).start()
     threading.Thread(target=lambda: asyncio.run(keep_alive()), daemon=True).start()
     
-    logger.info("LIVE 24/7 – NO CONFLICTS – COUNTING NOW!")
+    logger.info("LIVE 24/7 – NO ERRORS – COUNTING NOW!")
     app.run_polling(drop_pending_updates=True)
