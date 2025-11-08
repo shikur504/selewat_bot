@@ -3,7 +3,7 @@ import threading
 import asyncio
 import urllib.request
 import logging
-import re  # ← ADDED: Extract numbers from Arabic/English text
+import re
 from telegram import Update
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes
 from flask import Flask
@@ -64,7 +64,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if text.startswith('/'):
         return
 
-    # EXTRACT FIRST NUMBER FROM ANY TEXT (Arabic, English, Emojis)
+    # EXTRACT FIRST NUMBER FROM ANY TEXT
     match = re.search(r'\d+', text)
     if not match:
         return
@@ -79,13 +79,12 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     new = old + num
     save_total(new)
 
-    # REPLY IN GROUP (NOT PRIVATE)
+    # FIXED: PROPER MULTI-LINE F-STRING
     await update.message.reply_text(
-        f"<b>{full_name}</b> added <b>{num:,}</b> to <b>Group Salawat</b>\
-
+        f"<b>{full_name}</b> added <b>{num:,}</b> to <b>Group Salawat</b>\n"
         f"Total count: <b>{new:,}</b>",
         parse_mode='HTML',
-        reply_to_message_id=update.message.message_id  # ← SHOWS IN GROUP
+        reply_to_message_id=update.message.message_id
     )
     logger.info(f"{full_name} +{num} → GLOBAL: {new}")
 
@@ -139,5 +138,5 @@ if __name__ == "__main__":
     threading.Thread(target=run_flask, daemon=True).start()
     threading.Thread(target=lambda: asyncio.run(keep_alive()), daemon=True).start()
     
-    logger.info("LIVE 24/7 – COUNTS FROM ARABIC TEXT – DASHBOARD MOTIVATES @sirrul_wejud!")
+    logger.info("LIVE 24/7 – NO SYNTAX ERROR – ARABIC COUNTING – MOTIVATIONAL DASHBOARD!")
     app.run_polling(drop_pending_updates=True)
