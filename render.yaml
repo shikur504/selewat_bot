@@ -2,6 +2,12 @@ services:
   - type: web
     name: selewat-bot
     env: python
+    region: oregon
+    plan: free
     buildCommand: pip install -r requirements.txt
     startCommand: python bot.py
     pythonVersion: "3.11"
+    disk:
+      name: data
+      mountPath: /data
+      sizeGB: 1
