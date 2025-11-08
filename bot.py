@@ -92,11 +92,18 @@ def total():
     count = load_total()
     return f'''
     <meta http-equiv="refresh" content="10">
-    <h1 style="text-align:center; color:#2E8B57; font-family:Arial;">GROUP SALAWAT TOTAL</h1>
+    <h1 style="text-align:center; color:#2E8B57; font-family:Arial;">GLOBAL SALAWAT TOTAL</h1>
     <h2 style="text-align:center; color:#1E90FF; font-size:48px;">{count:,}</h2>
-    <p style="text-align:center; font-size:20px;">
-        <a href="https://t.me/+YOUR_GROUP_LINK" style="color:#25D366; text-decoration:none;">Join Group</a> |
-        <a href="https://t.me/sirulwujudselewatbot" style="color:#0088cc; text-decoration:none;">@sirulwujudselewatbot</a>
+    <p style="text-align:center; font-size:20px; color:#333; line-height:1.8; margin:20px;">
+        Join the group and send your Salawat count to contribute! <br>
+        Every number you send adds to this total – help reach <b>1 BILLION</b> InshaAllah!
+    </p>
+    <p style="text-align:center;">
+        <a href="https://t.me/sirrul_wejud" 
+           style="background:#25D366; color:white; padding:14px 30px; border-radius:30px; 
+                  text-decoration:none; font-weight:bold; font-size:18px; display:inline-block;">
+            Join @sirrul_wejud Now
+        </a>
     </p>
     '''
 
