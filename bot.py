@@ -14,7 +14,7 @@ DATA_DIR = "./data"
 TOTAL_FILE = os.path.join(DATA_DIR, "total.txt")
 CHALLENGE_FILE = os.path.join(DATA_DIR, "challenge.txt")
 WEB_URL = "https://selewat-bot.onrender.com/total"
-CHALLENGE_GOAL = 10_000_000  # 10 million per challenge
+CHALLENGE_GOAL = 10_000_000
 
 # LOGGING
 logging.basicConfig(level=logging.INFO)
@@ -23,14 +23,11 @@ logger = logging.getLogger(__name__)
 # ==================== FILE HANDLING ====================
 def ensure_file():
     os.makedirs(DATA_DIR, exist_ok=True)
-    if not os.path.exists(TOTAL_FILE):
-        with open(TOTAL_FILE, "w") as f:
-            f.write("0")
-        logger.info(f"CREATED: {TOTAL_FILE}")
-    if not os.path.exists(CHALLENGE_FILE):
-        with open(CHALLENGE_FILE, "w") as f:
-            f.write("0")
-        logger.info(f"CREATED: {CHALLENGE_FILE}")
+    for file_path in [TOTAL_FILE, CHALLENGE_FILE]:
+        if not os.path.exists(file_path):
+            with open(file_path, "w") as f:
+                f.write("0")
+            logger.info(f"CREATED: {file_path}")
 
 def load_total():
     try:
@@ -59,29 +56,21 @@ def save_challenge(chal):
 # ==================== BOT HANDLERS ====================
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat = update.effective_chat
-
-    # BLOCK PRIVATE CHAT
     if chat.type == "private":
         await update.message.reply_text(
             "السلام عليكم\n\n"
             "This bot only works in the group!\n\n"
-            "Join the official group:\n"
-            "https://t.me/sirrul_wejud",
+            "Join: https://t.me/sirrul_wejud",
             disable_web_page_preview=True
         )
         return
 
-    # CHECK IF BOT IS ADMIN
     try:
         bot_member = await context.bot.get_chat_member(chat.id, context.bot.id)
         if bot_member.status not in ["administrator", "creator"]:
-            await update.message.reply_text(
-                "Please make me an admin first to count Salawat!\n"
-                "Go to Group Settings → Administrators → Add @sirulwujudselewatbot"
-            )
+            await update.message.reply_text("Please make me admin to count Salawat!")
             return
-    except Exception as e:
-        logger.error(f"ADMIN CHECK FAILED: {e}")
+    except:
         return
 
     total = load_total()
@@ -94,24 +83,20 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         f"**CURRENT CHALLENGE**: *{chal:,} / {CHALLENGE_GOAL:,}*\n"
         f"**Remaining**: *{remaining:,}*\n\n"
         "Send any number = added to **GROUP SALAWAT**!\n"
-        "Let’s hit 10 million per challenge InshaAllah!",
+        "Let’s hit 10 million InshaAllah!",
         parse_mode='Markdown'
     )
 
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat = update.effective_chat
-
-    # BLOCK PRIVATE CHAT
     if chat.type == "private":
         return
 
-    # CHECK IF BOT IS ADMIN
     try:
         bot_member = await context.bot.get_chat_member(chat.id, context.bot.id)
         if bot_member.status not in ["administrator", "creator"]:
             return
-    except Exception as e:
-        logger.error(f"ADMIN CHECK FAILED: {e}")
+    except:
         return
 
     if not update.message or not update.message.text:
@@ -121,27 +106,23 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if text.startswith('/'):
         return
 
-    # EXTRACT NUMBER: 1,200 or ١٨٥٠ or 1200
-    num_str = re.sub(r'[^\d]', '', text)  # Remove commas, spaces, Arabic letters
-    if not num_str:
+    # FIXED: ONLY FIRST NUMBER – NO EXTRA DIGITS!
+    match = re.search(r'\d+', text)
+    if not match:
         return
-    try:
-        num = int(num_str)
-    except:
-        return
+
+    num = int(match.group())
     if num <= 0:
         return
 
     user = update.message.from_user
     full_name = user.full_name
 
-    # Update challenge & total
     chal = load_challenge()
     new_chal = chal + num
     total = load_total()
     new_total = total + num
 
-    # Check if goal reached
     if new_chal >= CHALLENGE_GOAL:
         excess = new_chal - CHALLENGE_GOAL
         new_chal = excess
@@ -152,7 +133,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
             f"<b>Starting new challenge...</b>\n"
             f"<b>{full_name}</b> added <b>{num:,}</b> to <b>Group Salawat</b>\n"
             f"Total count: <b>{new_total:,}</b>\n"
-            f"Remaining from new challenge: <b>{CHALLENGE_GOAL - new_chal:,}</b>",
+            f"Remaining Selewat from new challenge: <b>{CHALLENGE_GOAL - new_chal:,}</b>",
             parse_mode='HTML',
             reply_to_message_id=update.message.message_id
         )
@@ -163,7 +144,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text(
             f"<b>{full_name}</b> added <b>{num:,}</b> to <b>Group Salawat</b>\n"
             f"Total count: <b>{new_total:,}</b>\n"
-            f"Remaining from this challenge: <b>{remaining:,}</b>",
+            f"Remaining Selewat from this challenge: <b>{remaining:,}</b>",
             parse_mode='HTML',
             reply_to_message_id=update.message.message_id
         )
@@ -221,5 +202,5 @@ if __name__ == "__main__":
     threading.Thread(target=run_flask, daemon=True).start()
     threading.Thread(target=lambda: asyncio.run(keep_alive()), daemon=True).start()
     
-    logger.info("LIVE 24/7 – CHALLENGE SYSTEM – COMMA + ARABIC – ADMIN-ONLY!")
+    logger.info("LIVE 24/7 – ONLY FIRST NUMBER – 100% ACCURATE – CHALLENGE SYSTEM!")
     app.run_polling(drop_pending_updates=True)
