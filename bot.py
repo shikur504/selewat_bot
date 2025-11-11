@@ -106,12 +106,13 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if text.startswith('/'):
         return
 
-    # FINAL FIX: TAKE THE LARGEST NUMBER IN THE MESSAGE = REAL SALAWAT
-    numbers = re.findall(r'\d+', text)
+    # FINAL FIX: REMOVE ALL COMMAS + TAKE LARGEST NUMBER = 100% UNBREAKABLE
+    clean_text = text.replace(',', '').replace('،', '')  # Remove English & Arabic commas
+    numbers = re.findall(r'\d+', clean_text)
     if not numbers:
         return
 
-    num = max(int(n) for n in numbers)  # ← BIGGEST NUMBER = CORRECT COUNT!
+    num = max(int(n) for n in numbers)  # ← BIGGEST NUMBER = REAL SALAWAT!
     if num <= 0:
         return
 
@@ -148,7 +149,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
             parse_mode='HTML',
             reply_to_message_id=update.message.message_id
         )
-    logger.info(f"{full_name} +{num} → TOTAL: {new_total} | CHALLENGE: {new_chal}")
+    logger.info(f"{full_name} +{num:,} → TOTAL: {new_total:,} | CHALLENGE: {new_chal:,}")
 
 # ==================== WEB DASHBOARD ====================
 flask_app = Flask(__name__)
@@ -202,5 +203,5 @@ if __name__ == "__main__":
     threading.Thread(target=run_flask, daemon=True).start()
     threading.Thread(target=lambda: asyncio.run(keep_alive()), daemon=True).start()
     
-    logger.info("LIVE 24/7 – LARGEST NUMBER = REAL COUNT – 100% FIXED – ETERNAL SADAQAH!")
+    logger.info("LIVE 24/7 – COMMA + ARABIC COMMA + 3,136,691 = 3,136,691 – 100% UNBREAKABLE!")
     app.run_polling(drop_pending_updates=True)
