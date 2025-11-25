@@ -281,7 +281,7 @@ if __name__ == "__main__":
     app.add_handler(CommandHandler("start", start))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
     
-    # FIXED: datetime.time() → datetime.time(...)
+    # FINAL FIX: datetime.time(hour=15, minute=0) ← PARENTHESES!
     app.job_queue.run_daily(daily_report, time=datetime.time(hour=15, minute=0))
     
     threading.Thread(target=run_flask, daemon=True).start()
