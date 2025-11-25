@@ -276,7 +276,7 @@ if __name__ == "__main__":
     logger.info("GLOBAL SELEWAT BOT STARTING...")
     ensure_file()
     
-    app = Application.builder().token(TOKEN).job_queue(job_queue=True).build()
+    app = Application.builder().token(TOKEN).job_queue(None).build()
     app.add_handler(CommandHandler("start", start))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
     
