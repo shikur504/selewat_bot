@@ -282,7 +282,11 @@ if __name__ == "__main__":
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
     
     # DAILY REPORT AT 6:00 PM EAT
-    app.job_queue.run_daily(daily_report, time=datetime.time(hour=15, minute=0))
+    # FIXED: Correct datetime.time() usage
+    app.job_queue.run_daily(
+        daily_report,
+        time=datetime.time(hour=15, minute=0)  # 6:00 PM EAT
+    )
     
     threading.Thread(target=run_flask, daemon=True).start()
     threading.Thread(target=lambda: asyncio.run(keep_alive()), daemon=True).start()
