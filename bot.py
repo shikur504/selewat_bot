@@ -5,7 +5,7 @@ import urllib.request
 import logging
 import re
 import json
-from datetime import datetime
+from datetime import datetime, time  # ← THIS LINE FIXED EVERYTHING!
 from telegram import Update
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes
 from flask import Flask
@@ -19,10 +19,8 @@ DAILY_FILE = os.path.join(DATA_DIR, "daily.json")
 WEB_URL = "https://selewat-bot.onrender.com/total"
 CHALLENGE_GOAL = 20_000_000
 
-# ONLY THESE 3 USERS CAN USE /start
 ALLOWED_USERS = {"Sirriwesururi", "S1emu", "Abdu_504"}
 
-# LOGGING
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
@@ -93,7 +91,6 @@ async def daily_report(context):
         f"ﷺ"
     )
 
-    # SEND TO ALL GROUPS WHERE BOT IS ADMIN
     try:
         updates = await context.bot.get_updates(limit=100, allowed_updates=["my_chat_member"])
         for update in updates:
@@ -282,11 +279,11 @@ if __name__ == "__main__":
     app.add_handler(CommandHandler("start", start))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
     
-    # FINAL 100% WORKING – DAILY REPORT AT 6:00 PM EAT
-    app.job_queue.run_daily(daily_report, time=datetime.time(hour=15, minute=0))
+    # FINAL WORKING LINE – DAILY REPORT AT 6:00 PM EAT
+    app.job_queue.run_daily(daily_report, time=time(hour=15, minute=0))
     
     threading.Thread(target=run_flask, daemon=True).start()
     threading.Thread(target=lambda: asyncio.run(keep_alive()), daemon=True).start()
     
-    logger.info("LIVE 24/7 – DAILY REPORT 6PM EAT – 100% WORKING!")
+    logger.info("LIVE 24/7 – FINAL VERSION – 100% WORKING!")
     app.run_polling(drop_pending_updates=True)
