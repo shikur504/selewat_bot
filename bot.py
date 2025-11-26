@@ -5,7 +5,7 @@ import urllib.request
 import logging
 import re
 import json
-from datetime import datetime, time  # ← THIS LINE FIXED EVERYTHING!
+from datetime import datetime, time  # ← Import time for daily report
 from telegram import Update
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes
 from flask import Flask
